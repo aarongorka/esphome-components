@@ -207,3 +207,21 @@ fan:
               }
           }
 ```
+
+
+## homeassistant_cover
+
+A `cover` imported from Home Assistant, like the built-in `homeassistant` switch, light and number
+platforms. Built against ESPHome 2026.10. 100% slop coded.
+
+```yaml
+cover:
+  - platform: homeassistant_cover
+    name: Garage Door
+    entity_id: cover.garage_door
+```
+
+State (`open`, `closed`, `opening`, `closing`), `current_position`, `current_tilt_position` and
+`supported_features` are imported. Commands are sent as `cover.open_cover`, `cover.close_cover`,
+`cover.stop_cover`, `cover.toggle`, `cover.set_cover_position` and `cover.set_cover_tilt_position`.
+Like the other homeassistant platforms, `internal` defaults to `true`; set `internal: false` to expose it.
