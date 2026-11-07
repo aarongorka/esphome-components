@@ -22,3 +22,5 @@ display:
 ```
 
 `set_custom_char(location, {8 rows})` takes effect on the next redraw.
+
+Redraws write only character cells that differ from the previous frame.

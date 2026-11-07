@@ -5,6 +5,8 @@
 #include "esphome/components/i2c/i2c.h"
 #include "esphome/components/display/display.h"
 
+#include <vector>
+
 namespace esphome::lcd_pcf8574_dynamic {
 
 class PCF8574DynamicLCDDisplay;
@@ -15,6 +17,7 @@ class PCF8574DynamicLCDDisplay final : public lcd_base::LCDDisplay, public i2c::
  public:
   void set_writer(pcf8574_dynamic_lcd_writer_t &&writer) { this->writer_ = std::move(writer); }
   void setup() override;
+  void update() override;
   void dump_config() override;
   void backlight();
   void no_backlight();
@@ -31,6 +34,7 @@ class PCF8574DynamicLCDDisplay final : public lcd_base::LCDDisplay, public i2c::
   // Stores the current state of the backlight.
   uint8_t backlight_value_;
   pcf8574_dynamic_lcd_writer_t writer_;
+  std::vector<uint8_t> previous_buffer_;
 };
 
 }  // namespace esphome::lcd_pcf8574_dynamic

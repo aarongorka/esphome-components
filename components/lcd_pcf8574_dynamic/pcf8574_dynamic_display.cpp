@@ -18,6 +18,45 @@ void PCF8574DynamicLCDDisplay::setup() {
 
   LCDDisplay::setup();
 }
+void PCF8574DynamicLCDDisplay::update() {
+  this->clear();
+  this->call_writer();
+
+  const size_t cell_count = static_cast<size_t>(this->rows_) * this->columns_;
+  if (this->previous_buffer_.size() != cell_count) {
+    this->display();
+    this->previous_buffer_.assign(this->buffer_, this->buffer_ + cell_count);
+    return;
+  }
+
+  const uint8_t visible_rows = this->rows_ < 4 ? this->rows_ : 4;
+  const uint8_t row_addresses[] = {
+      0x00, 0x40, this->columns_,
+      static_cast<uint8_t>(0x40 + this->columns_)};
+  for (uint8_t row = 0; row < visible_rows; row++) {
+    const uint8_t row_address = row_addresses[row];
+    for (uint8_t column = 0; column < this->columns_;) {
+      size_t cell = static_cast<size_t>(row) * this->columns_ + column;
+      if (this->buffer_[cell] == this->previous_buffer_[cell]) {
+        column++;
+        continue;
+      }
+
+      this->command_(0x80 | (row_address + column));
+      do {
+        cell = static_cast<size_t>(row) * this->columns_ + column;
+        this->send(this->buffer_[cell], true);
+        this->previous_buffer_[cell] = this->buffer_[cell];
+        column++;
+      } while (column < this->columns_ &&
+               this->buffer_[static_cast<size_t>(row) * this->columns_ +
+                             column] !=
+                   this->previous_buffer_[static_cast<size_t>(row) *
+                                              this->columns_ +
+                                          column]);
+    }
+  }
+}
 void PCF8574DynamicLCDDisplay::dump_config() {
   ESP_LOGCONFIG(TAG,
                 "PCF8574 Dynamic LCD Display:\n"
