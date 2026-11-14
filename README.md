@@ -212,7 +212,12 @@ fan:
 ## homeassistant_cover
 
 A `cover` imported from Home Assistant, like the built-in `homeassistant` switch, light and number
-platforms. Built against ESPHome 2026.10. 100% slop coded.
+platforms. Useful for devices with displays where you want to control covers in your Home Assistant.
+
+> [!WARNING]
+> 100% slop coded
+
+(but I have been using it for quite a while with no issues)
 
 ```yaml
 cover:
@@ -224,4 +229,105 @@ cover:
 State (`open`, `closed`, `opening`, `closing`), `current_position`, `current_tilt_position` and
 `supported_features` are imported. Commands are sent as `cover.open_cover`, `cover.close_cover`,
 `cover.stop_cover`, `cover.toggle`, `cover.set_cover_position` and `cover.set_cover_tilt_position`.
-Like the other homeassistant platforms, `internal` defaults to `true`; set `internal: false` to expose it.
+
+Built against ESPHome 2026.10.
+
+## lcd_pcf8574_dynamic
+
+`lcd_pcf8574` with runtime-redefinable custom characters.
+
+> [!WARNING]
+> 100% slop coded
+
+(but I have been using it for quite a while with no issues)
+
+![Large clock interface using block glyphs](./components/lcd_pcf8574_dynamic/custom_characters_blocks.jpg)
+![Weather interface with icons](./components/lcd_pcf8574_dynamic/custom_characters_icons.jpeg)
+
+These are both on the same device (along with a dozen other pages, each with unique custom characters), which would be impossible with the limit of 8 static custom characters in the upstream driver.
+
+```yaml
+external_components:
+  - source: github://aarongorka/esphome-components
+    components: [lcd_pcf8574_dynamic]
+
+display:
+  - platform: lcd_pcf8574_dynamic
+    dimensions: 16x2
+    lambda: |-
+      id(lcd).set_custom_char(0, {0x04, 0x0e, 0x1f, 0x04, 0x04, 0x04, 0x04, 0x00});
+      it.print("\x08");
+```
+
+Additionally, redraws write only character cells that differ from the previous frame. allowing **much faster refresh rates**. At 250ms `update_interval` and a fairly complex display lambda, it's still perfectly responsive on an esp32c3, allowing for an interactive UI (which was _not_ the case with the upstream driver).
+
+
+# BNO055 absolute position sensor
+
+I think it all pretty much works, but be warned it hasn't seen much use as I haven't gotten back to this project yet.
+
+```yaml
+# example configuration:
+
+i2c:
+  - id: i2c_a
+    sda: GPIO3
+    scl: GPIO1
+
+sensor:
+  - platform: bno055_i2c_sensor
+    id: "my_bno055_i2c_sensor"
+    system_status:
+      name: "BNO055 System Status"
+      id: "my_bno055_system_status"
+    system_error:
+      name: "BNO055 System Error"
+      id: "my_bno055_system_error"
+    gyro_x:
+      name: "BNO055 Gyro X"
+      id: "my_bno055_gyro_x"
+    gyro_y:
+      name: "BNO055 Gyro Y"
+      id: "my_bno055_gyro_y"
+    gyro_z:
+      name: "BNO055 Gyro Z"
+      id: "my_bno055_gyro_z"
+    euler_yaw:
+      name: "BNO055 Euler Yaw"
+      id: "my_bno055_euler_yaw"
+    euler_roll:
+      name: "BNO055 Euler Roll"
+      id: "my_bno055_euler_roll"
+    euler_pitch:
+      name: "BNO055 Euler Pitch"
+      id: "my_bno055_euler_pitch"
+    calibration_sys:
+      name: "BNO055 Calibration System"
+      id: "my_bno055_calibration_sys"
+    calibration_gyro:
+      name: "BNO055 Calibration Gyroscope"
+      id: "my_bno055_calibration_gyro"
+    calibration_accel:
+      name: "BNO055 Calibration Accelerometer"
+      id: "my_bno055_calibration_accel"
+    calibration_mag:
+      name: "BNO055 Calibration Magnetometer"
+      id: "my_bno055_calibration_mag"
+    temperature:
+      name: "BNO055 Temperature"
+      id: "my_bno055_temperature"
+    accel_x:
+      name: "BNO055 Accel X"
+      id: "my_bno055_accel_x"
+    accel_y:
+      name: "BNO055 Accel Y"
+      id: "my_bno055_accel_y"
+    accel_z:
+      name: "BNO055 Accel Z"
+      id: "my_bno055_accel_z"
+
+binary_sensor:
+  - platform: gpio
+    pin: GPIO7
+    name: "BNO055 Interrupt"
+    id: "my_bno055_interrupt"
